@@ -1,0 +1,73 @@
+#!/usr/bin/python3
+
+import sys
+import os
+
+# --  Parse Through Passed Args  --
+
+sliceStart = 0					# Initialize index for where to start slice of list of files
+cOpt = False					# Initialize options for formatting printed screen
+wOpt = True
+lOpt = True
+mOpt = True
+optStr = ""					# String of specified options
+argList = sys.argv[1:]
+
+for pos,arg in enumerate(argList):
+	if arg[0] != "-":
+		sliceStart = pos		# Index of beginning of list of files
+		break
+	else:
+		optStr += arg[1:]
+
+if len(optStr) > 0:				# If any options are specified, reassign -Opt bools
+	wOpt = False
+	lOpt = False
+	mOpt = False
+	cOpt = False
+		
+	if "c" in optStr:			# Show byte count
+		cOpt = True
+	if "l" in optStr:			# Show line count
+		lOpt = True
+	if "m" in optStr:			# Show char count
+		mOpt = True
+	if "w" in optStr:			# Show word count
+		wOpt = True
+
+fileList = argList[pos:]
+
+# --  Count Values  -- 
+
+wc = 0						# word count
+cc = 0						# char count
+lc = 0						# line count
+bc = 0						# byte count
+for readFile in fileList:
+	oFile = open(readFile, "r")
+	bc += os.path.getsize(readFile)
+	for line in oFile:
+		lc += 1
+		wc += len(line.split())
+		cc += len(line)
+	oFile.close()
+
+# --  Format Output  --
+
+outStr = " "
+fileStr = ""
+for i in fileList:
+	fileStr += str(i) + " "
+
+if lOpt:
+	outStr += "{} ".format(lc)
+if wOpt:
+	outStr += "{} ".format(wc)
+if mOpt:
+	outStr += "{} ".format(cc)
+if cOpt:
+	outStr += "{} ".format(bc)
+
+outStr += fileStr
+print(outStr)
+
