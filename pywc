@@ -49,7 +49,7 @@ optStr = ""					# String of specified options
 fileList = []
 
 for argPos in range(1, len(sys.argv)):
-	if sys.argv[argPos] != "-":
+	if sys.argv[argPos][0] != "-":
 		fileList.append(sys.argv[argPos])
 	else:
 		optStr += sys.argv[argPos]
