@@ -3,22 +3,56 @@
 import sys
 import os
 
+def formatOutput(lo,wo,mo,co,lc,wc,cc,bc,f):
+	if f:
+		tempList = [lc, wc, cc, bc]
+		tempList.sort()
+		maxlen = len(str(tempList[-1]))
+	else:
+		maxlen = 7
+
+	outStr = ""
+
+	if lo:
+		lStr = "{}".format(lc)
+		while len(lStr) < maxlen:
+			lStr = " " + lStr
+		outStr += lStr + " "
+	if wo:
+		wStr = "{}".format(wc)
+		while len(wStr) < maxlen:
+			wStr = " " + wStr
+		outStr += wStr + " "
+	if mo:
+		mStr = "{}".format(cc)
+		while len(mStr) < maxlen:
+			mStr = " " + mStr
+		outStr += mStr + " "
+	if co:
+		cStr = "{}".format(bc)
+		while len(cStr) < maxlen:
+			cStr = " " + cStr
+		outStr += cStr + " "
+
+	if f:						# If filename is present
+		outStr += f				#   If input not from stdin
+
+	print(outStr)
+
 # --  Parse Through Passed Args  --
 
-sliceStart = 0					# Initialize index for where to start slice of list of files
 cOpt = False					# Initialize options for formatting printed screen
 wOpt = True
 lOpt = True
 mOpt = True
 optStr = ""					# String of specified options
-argList = sys.argv[1:]
+fileList = []
 
-for pos,arg in enumerate(argList):
-	if arg[0] != "-":
-		sliceStart = pos		# Index of beginning of list of files
-		break
+for argPos in range(1, len(sys.argv)):
+	if sys.argv[argPos] != "-":
+		fileList.append(sys.argv[argPos])
 	else:
-		optStr += arg[1:]
+		optStr += sys.argv[argPos]
 
 if len(optStr) > 0:				# If any options are specified, reassign -Opt bools
 	wOpt = False
@@ -35,39 +69,41 @@ if len(optStr) > 0:				# If any options are specified, reassign -Opt bools
 	if "w" in optStr:			# Show word count
 		wOpt = True
 
-fileList = argList[pos:]
-
 # --  Count Values  -- 
+if len(fileList) >= 1:
 
-wc = 0						# word count
-cc = 0						# char count
-lc = 0						# line count
-bc = 0						# byte count
-for readFile in fileList:
-	oFile = open(readFile, "r")
-	bc += os.path.getsize(readFile)
-	for line in oFile:
+	for f in fileList:
+		wc = 0				# word count
+		cc = 0				# char count
+		lc = 0				# line count
+		bc = 0				# byte count
+	
+		try:
+			oFile = open(f, "r")
+			
+			bc += os.path.getsize(f)
+	
+			for line in oFile:
+				lc += 1
+				wc += len(line.split())
+				cc += len(line)
+			oFile.close()
+			formatOutput(lOpt,wOpt,mOpt,cOpt,lc,wc,cc,bc,f)
+
+		except IsADirectoryError:
+			print("pywc: {}: Is a directory".format(f))
+		except FileNotFoundError:
+			print("pywc: {}: File not found".format(f))
+else:
+	
+	wc = 0						# word count
+	cc = 0						# char count
+	lc = 0						# line count
+	bc = 0						# byte count
+	for line in sys.stdin:
 		lc += 1
 		wc += len(line.split())
 		cc += len(line)
-	oFile.close()
 
-# --  Format Output  --
-
-outStr = " "
-fileStr = ""
-for i in fileList:
-	fileStr += str(i) + " "
-
-if lOpt:
-	outStr += "{} ".format(lc)
-if wOpt:
-	outStr += "{} ".format(wc)
-if mOpt:
-	outStr += "{} ".format(cc)
-if cOpt:
-	outStr += "{} ".format(bc)
-
-outStr += fileStr
-print(outStr)
+	formatOutput(lOpt,wOpt,mOpt,cOpt,lc,wc,cc,bc,None)
 
